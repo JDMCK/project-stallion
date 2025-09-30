@@ -92,7 +92,7 @@ mask_match :: proc(query_mask, component_mask: ^ComponentMask) -> bool {
 	return true
 }
 
-mask_get_components :: proc(mask: ^ComponentMask) -> [dynamic]u32 {
+mask_get_components :: proc(mask: ComponentMask) -> [dynamic]u32 {
 	result := [dynamic]u32{}
 
 	for i in 0 ..< mask.word_count {
@@ -105,4 +105,18 @@ mask_get_components :: proc(mask: ^ComponentMask) -> [dynamic]u32 {
 		}
 	}
 	return result
+}
+
+mask_equal :: proc(a, b: ComponentMask) -> bool {
+	if a.word_count != b.word_count {
+		return false
+	}
+
+	for i in 0 ..< a.word_count {
+		if a.words[i] != b.words[i] {
+			return false
+		}
+	}
+
+	return true
 }

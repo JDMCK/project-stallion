@@ -2,52 +2,27 @@ package ecs
 
 import "core:slice"
 
-Id :: u32
+EntityId :: u32
 EntityManager :: struct {
-	next_entity:   Id,
-	removal_queue: [dynamic]Id,
+	next_entity:   EntityId,
+	removal_queue: [dynamic]EntityId,
 	archetypes:    [dynamic]Archetype,
 }
 
 EM_init :: proc() -> EntityManager {
-	return EntityManager{entities = [dynamic]Id{}, next_entity = 0}
+	return EntityManager{}
 }
 
-EM_destroy :: proc(em: ^EntityManager) {
-	arch_destroy(em.archetypes)
-	delete(em.archetypes)
-	delete(em.removal_queue)
-}
-
-EM_create_entity :: proc(em: ^EntityManager) -> Id {
-	id := em.next_entity
-	append(&em.entities, id)
-	em.next_entity += 1
-	return id
-}
-
-EM_queue_remove_entity :: proc(em: ^EntityManager, id: Id) {
-	if !slice.contains(em.removal_queue[:], id) {
-		append(&em.removal_queue, id)
-	}
-}
-
-EM_remove_entities :: proc(em: ^EntityManager) {
-	next_entities := [dynamic]u32{}
-	entities_loop: for id_1 in em.entities {
-		for id_2 in em.removal_queue {
-			if id_1 == id_2 {
-				continue entities_loop
-			}
+add_entity :: proc(em: ^EntityManager, mask: ComponentMask) -> (a: Archetype, err: Error) {
+	for &a in em.archetypes {
+		if mask_equal(a.component_mask, mask) {
+			Arch_add_entity(&a, em.next_entity)
+			return a, Error.None
 		}
-		append(&next_entities, id_1)
 	}
-	delete(em.entities)
-
-	em.entities = next_entities
-}
-
-EM_clear_entities :: proc(em: ^EntityManager) {
-	clear(&em.removal_queue)
-	clear(&em.entities)
+	// otherwise, create it
+	arch := Arch_build(..mask_get_components(mask)[:]) or_return
+	Arch_add_entity(&arch, em.next_entity)
+	em.next_entity += 1
+	return arch, Error.None
 }

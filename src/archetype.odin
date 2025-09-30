@@ -4,14 +4,15 @@ import "core:slice"
 Archetype :: struct {
 	component_mask: ComponentMask,
 	entities:       [dynamic]u32,
-	components:     [dynamic]rawptr,
+	components:     [dynamic]ComponentColumn,
 }
+
 
 Arch_init :: proc() -> Archetype {
 	return Archetype {
 		component_mask = mask_init(),
-		entities = [dynamic]Id{},
-		components = [dynamic]rawptr{},
+		entities = [dynamic]EntityId{},
+		components = [dynamic]ComponentColumn{},
 	}
 }
 
@@ -24,14 +25,13 @@ Arch_build :: proc(components: ..u32) -> (Archetype, Error) {
 	}
 
 	arch := Arch_init()
-	component_mask := mask_build(..components)
-	components := make([dynamic]rawptr, 0, len(components))
-	arch.component_mask = component_mask
-	arch.components = components
+	mask := mask_build(..components)
+	arch.component_mask = mask
 	return arch, Error.None
 }
 
-Arch_add_entity :: proc(arch: ^Archetype, entity: Id) {
+Arch_add_entity :: proc(arch: ^Archetype, entity: EntityId) {
 	append(&arch.entities, entity)
-
+	for c in mask_get_components(arch.component_mask) {
+	}
 }
