@@ -1,8 +1,6 @@
 package tests
 
 import ecs "../src"
-import "core:fmt"
-import "core:log"
 import "core:testing"
 
 @(test)
@@ -20,7 +18,7 @@ create_entities :: proc(t: ^testing.T) {
 
 	ok := slice_equals(u32, em.entities[:], []u32{0, 1, 3, 4, 5})
 
-	testing.expect(t, ok, "Entities added properly.")
+	testing.expect(t, ok, "Failed to add entities.")
 }
 
 @(test)
@@ -35,7 +33,7 @@ remove_entities :: proc(t: ^testing.T) {
 	ok: bool
 	ecs.EM_remove_entities(&em)
 	ok = slice_equals(u32, em.entities[:], []u32{0, 1, 2, 3, 4})
-	testing.expect(t, ok, "Removing entities before queueing does nothing.")
+	testing.expect(t, ok, "Removing entities before queueing did not do nothing.")
 
 	ecs.EM_queue_remove_entity(&em, 0)
 	ecs.EM_queue_remove_entity(&em, 2)
@@ -45,7 +43,7 @@ remove_entities :: proc(t: ^testing.T) {
 	ecs.EM_remove_entities(&em)
 
 	ok = slice_equals(u32, em.entities[:], []u32{1, 3})
-	testing.expect(t, ok, "Removed queued entities.")
+	testing.expect(t, ok, "Failed to remove queued entities.")
 }
 
 @(test)
@@ -60,5 +58,5 @@ clear_entities :: proc(t: ^testing.T) {
 
 	ok := slice_equals(u32, em.entities[:], []u32{})
 
-	testing.expect(t, ok, "All entitites cleared.")
+	testing.expect(t, ok, "Failed to clear all entitites.")
 }

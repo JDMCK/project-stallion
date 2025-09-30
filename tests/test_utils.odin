@@ -1,5 +1,7 @@
 package tests
 
+import "core:log"
+
 slice_equals :: proc($T: typeid, a: []T, b: []T) -> bool {
 	if len(a) != len(b) {
 		return false

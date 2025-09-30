@@ -4,9 +4,9 @@ import "core:slice"
 
 Id :: u32
 EntityManager :: struct {
-	entities:      [dynamic]Id,
 	next_entity:   Id,
 	removal_queue: [dynamic]Id,
+	archetypes:    [dynamic]Archetype,
 }
 
 EM_init :: proc() -> EntityManager {
@@ -14,7 +14,8 @@ EM_init :: proc() -> EntityManager {
 }
 
 EM_destroy :: proc(em: ^EntityManager) {
-	delete(em.entities)
+	arch_destroy(em.archetypes)
+	delete(em.archetypes)
 	delete(em.removal_queue)
 }
 
