@@ -77,7 +77,7 @@ mask_build :: proc {
 	mask_build_u32,
 }
 
-mask_match :: proc(query_mask, component_mask: ^ComponentMask) -> bool {
+mask_match :: proc(query_mask, component_mask: ComponentMask) -> bool {
 	words_to_check := min(len(query_mask.words), len(component_mask.words))
 
 	for i in 0 ..< words_to_check {

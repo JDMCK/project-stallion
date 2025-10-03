@@ -26,3 +26,12 @@ add_entity :: proc(em: ^EntityManager, mask: ComponentMask) -> (a: Archetype, er
 	em.next_entity += 1
 	return arch, Error.None
 }
+
+query :: proc(em: ^EntityManager, mask: ComponentMask) -> ^Archetype {
+	for &a in em.archetypes {
+		if mask_match(mask, a.component_mask) {
+			return &a
+		}
+	}
+	return nil
+}

@@ -26,21 +26,41 @@ Col_init :: proc(component_size: int) -> (col: ComponentColumn, err: runtime.All
 		runtime.Allocator_Error.None
 }
 
+Col_destroy :: proc(col: ^ComponentColumn) {
+	mem.free(col.components)
+}
+
 Col_add_entry :: proc(col: ^ComponentColumn, data: rawptr) -> runtime.Allocator_Error {
 	if col.len >= col.capacity {
 		new_buffer := mem.alloc(col.component_size * col.capacity * 2) or_return
-		mem.copy(new_buffer, col.components, col.len)
-		free(col.components)
+		mem.copy(new_buffer, col.components, col.len * col.component_size)
+		mem.free(col.components)
 		col.components = new_buffer
+		col.capacity *= 2
 	}
-	dest := col.components + (col.len * col.component_size)
-	mem.copy(dest, data, col.component_size)
+	raw_components := cast(uintptr)col.components
+
+	dest := raw_components + cast(uintptr)(col.len * col.component_size)
+	raw_dest := cast(rawptr)dest
+	mem.copy(raw_dest, data, col.component_size)
 	col.len += 1
+
+	return .None
 }
 
 Col_remove_entry :: proc(col: ^ComponentColumn, index: int) {
-	index := mem.ptr_offset(col.components, (index * col.component_size))
-	last_element := ^u8(col.components) + ((col.len - 1) * col.component_size)
-	mem.copy(index, last_element, col.component_size)
-	mem.zero(last_element, col.component_size)
+	raw_components := cast(uintptr)col.components
+	index := raw_components + cast(uintptr)(index * col.component_size)
+	raw_index := cast(rawptr)index
+	last_index := raw_components + cast(uintptr)((col.len - 1) * col.component_size)
+	raw_last_index := cast(rawptr)last_index
+
+	mem.copy(raw_index, raw_last_index, col.component_size)
+	mem.zero(raw_last_index, col.component_size)
+	col.len -= 1
+}
+
+Col_get_entry :: proc(col: ^ComponentColumn, index: int) -> rawptr {
+	raw_components := cast(uintptr)col.components
+	return cast(rawptr)(raw_components + cast(uintptr)(index * col.component_size))
 }

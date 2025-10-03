@@ -53,7 +53,7 @@ mask_match :: proc(t: ^testing.T) {
 @(test)
 mask_get_components :: proc(t: ^testing.T) {
 	mask := ecs.mask_build(1, 3, 5, 64, 128)
-	result := ecs.mask_get_components(&mask)
+	result := ecs.mask_get_components(mask)
 	defer ecs.mask_destroy(&mask)
 	defer delete(result)
 
