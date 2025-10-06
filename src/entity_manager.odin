@@ -65,7 +65,7 @@ build_entity :: proc(ecs: ^ECS, components: ..runtime.Raw_Any) -> Entity {
 
 remove_entities :: proc(ecs: ^ECS) {}
 
-query :: proc(ecs: ^ECS, components: ..runtime.Raw_Any) -> [dynamic]^Archetype {
+query :: proc(ecs: ^ECS, components: ..typeid) -> [dynamic]^Archetype {
 	assert(len(components) != 0)
 
 	archetypes := make([dynamic]^Archetype, len(components), context.temp_allocator)
