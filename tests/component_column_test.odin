@@ -11,7 +11,7 @@ Col_add_entry :: proc(t: ^testing.T) {
 	col.len = 0
 	col.capacity = 2
 	col.component_size = size_of(int)
-	col.components, _ = mem.alloc(col.capacity * col.component_size)
+	col.data, _ = mem.alloc(col.capacity * col.component_size)
 
 	defer ecs.Col_destroy(&col)
 
@@ -22,7 +22,7 @@ Col_add_entry :: proc(t: ^testing.T) {
 	}
 
 	testing.expect_value(t, col.len, 17)
-	value := cast(^[17]int)col.components
+	value := cast(^[17]int)col.data
 	ok := slice_equals(int, value[:], expected[:])
 
 	testing.expect(t, ok)
@@ -34,7 +34,7 @@ Col_remove_entry :: proc(t: ^testing.T) {
 	col.len = 0
 	col.capacity = 5
 	col.component_size = size_of(int)
-	col.components, _ = mem.alloc(col.capacity * col.component_size)
+	col.data, _ = mem.alloc(col.capacity * col.component_size)
 
 	defer ecs.Col_destroy(&col)
 
@@ -50,7 +50,7 @@ Col_remove_entry :: proc(t: ^testing.T) {
 
 	// Expected result: 10, 20, 50, 40 (last element moved to removed spot)
 	expected := [4]int{10, 20, 50, 40}
-	value := cast(^[4]int)col.components
+	value := cast(^[4]int)col.data
 	ok := slice_equals(int, value[:], expected[:])
 
 	testing.expect(t, ok)

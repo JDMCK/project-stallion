@@ -1,43 +1,25 @@
 package ecs
 
+import "base:runtime"
 import "core:fmt"
 import "core:slice"
 
 ComponentMask :: struct {
-	words:      [dynamic]u64le,
-	word_count: u32,
+	words:           [dynamic]u64le,
+	word_count:      u32,
+	component_count: u32,
 }
 
 mask_init :: proc() -> ComponentMask {
-	return ComponentMask{words = [dynamic]u64le{}, word_count = 0}
+	return ComponentMask{words = [dynamic]u64le{}}
 }
 
 mask_destroy :: proc(mask: ^ComponentMask) {
 	delete(mask.words)
 }
 
-mask_add_Component :: proc(mask: ^ComponentMask, values: ..Component) {
-	// increase word_count if necessary
-	max_value := slice.max(values)
-	word_count := u32(max_value) / 64 + 1
-	if mask.word_count < word_count {
-		for _ in 0 ..< word_count - mask.word_count {
-			append(&mask.words, 0)
-		}
-		mask.word_count = word_count
-	}
-
-	// set bits
-	for v, i in values {
-		v := u32(v)
-		word_index := v / 64
-		word := u64le(1) << (v % 64)
-		mask.words[word_index] |= word
-	}
-}
-
 mask_add_u32 :: proc(mask: ^ComponentMask, values: ..u32) {
-	// increase word_count if necessary
+	// Increase word_count if necessary.
 	max_value := slice.max(values)
 	word_count := max_value / 64 + 1
 	if mask.word_count < word_count {
@@ -47,34 +29,63 @@ mask_add_u32 :: proc(mask: ^ComponentMask, values: ..u32) {
 		mask.word_count = word_count
 	}
 
-	// set bits
+	// Set bits.
 	for v, i in values {
 		word_index := v / 64
 		word := u64le(1) << (v % 64)
 		mask.words[word_index] |= word
+		mask.component_count += 1
+	}
+}
+
+mask_add_raw_any :: proc(
+	mask: ^ComponentMask,
+	registry: ^ComponentRegistry,
+	values: ..runtime.Raw_Any,
+) {
+	for v in values {
+		index := registry.type_to_index[v.id]
+		mask_add_u32(mask, index)
+	}
+}
+
+mask_add_typeid :: proc(mask: ^ComponentMask, registry: ^ComponentRegistry, values: ..typeid) {
+	for v in values {
+		index := registry.type_to_index[v]
+		mask_add_u32(mask, index)
 	}
 }
 
 mask_add :: proc {
-	mask_add_Component,
 	mask_add_u32,
-}
-
-mask_build_Component :: proc(values: ..Component) -> ComponentMask {
-	mask := mask_init()
-	mask_add(&mask, ..values)
-	return mask
+	mask_add_raw_any,
 }
 
 mask_build_u32 :: proc(values: ..u32) -> ComponentMask {
 	mask := mask_init()
-	mask_add(&mask, ..values)
+	mask_add_u32(&mask, ..values)
+	return mask
+}
+
+mask_build_raw_any :: proc(
+	registry: ^ComponentRegistry,
+	values: ..runtime.Raw_Any,
+) -> ComponentMask {
+	mask := mask_init()
+	mask_add_raw_any(&mask, registry, ..values)
+	return mask
+}
+
+mask_build_typeid :: proc(registry: ^ComponentRegistry, values: ..typeid) -> ComponentMask {
+	mask := mask_init()
+	mask_add_typeid(&mask, registry, ..values)
 	return mask
 }
 
 mask_build :: proc {
-	mask_build_Component,
 	mask_build_u32,
+	mask_build_raw_any,
+	mask_build_typeid,
 }
 
 mask_match :: proc(query_mask, component_mask: ComponentMask) -> bool {
