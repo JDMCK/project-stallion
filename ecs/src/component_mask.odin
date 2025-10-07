@@ -59,6 +59,7 @@ mask_add_typeid :: proc(mask: ^ComponentMask, registry: ^ComponentRegistry, valu
 mask_add :: proc {
 	mask_add_u32,
 	mask_add_raw_any,
+	mask_add_typeid,
 }
 
 mask_build_u32 :: proc(values: ..u32) -> ComponentMask {

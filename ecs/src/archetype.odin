@@ -2,6 +2,7 @@ package ecs
 
 import "base:runtime"
 import "core:compress/shoco"
+import "core:fmt"
 import "core:slice"
 import "core:sort"
 
@@ -31,7 +32,8 @@ Arch_build :: proc(mask: ComponentMask, components: ..runtime.Raw_Any) -> Archet
 	arch.component_mask = mask
 
 	for c in components {
-		col := Col_init(size_of(c.id))
+		append(&arch.component_types, c.id)
+		col := Col_init(type_info_of(c.id).size)
 		append(&arch.components, col)
 	}
 
@@ -54,16 +56,4 @@ Arch_add_entity :: proc(
 	for c, i in sorted_components {
 		Col_add_entry(&arch.components[i], sorted_components[i].data)
 	}
-}
-
-get_component :: proc(archetype: ^Archetype, component: $T) -> []T {
-	type := typeid_of(T)
-	index: int
-	for ct, i in archetype.component_types {
-		if ct == type {
-			typed_ptr := cast([^]T)archetype.components[i].data
-			return typed_ptr[:len(archetype.entities)]
-		}
-	}
-	return nil
 }

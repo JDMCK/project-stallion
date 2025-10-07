@@ -52,8 +52,8 @@ Col_add_entry :: proc(col: ^ComponentColumn, data: rawptr) {
 	}
 	raw_components := cast(uintptr)col.data
 
-	dest := raw_components + cast(uintptr)(col.len * col.component_size)
-	raw_dest := cast(rawptr)dest
+	next_dest := raw_components + cast(uintptr)(col.len * col.component_size) // problem here?
+	raw_dest := cast(rawptr)next_dest
 	mem.copy(raw_dest, data, col.component_size)
 	col.len += 1
 }

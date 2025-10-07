@@ -1,5 +1,7 @@
-package ecs
+package game
 
+import ecs "../ecs/src"
+import "base:runtime"
 import "core:fmt"
 import rl "vendor:raylib"
 
@@ -23,6 +25,8 @@ Health :: struct {
 }
 
 main :: proc() {
+	using ecs
+
 	rl.InitWindow(800, 800, "ECS")
 	rl.SetTargetFPS(60)
 
@@ -34,20 +38,17 @@ main :: proc() {
 	entity_2 := build_entity(&ecs, c(&Position{x = 2, y = 2}), c(&Health{value = 2}))
 	entity_3 := build_entity(&ecs, c(&Position{x = 3, y = 3}), c(&Health{value = 3}))
 
-
 	for !rl.WindowShouldClose() {
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.PINK)
 		{ 	// game code goes here
-			archetypes := query(&ecs, Position, Health)
-			fmt.println(archetypes[:])
-			// for a in archetypes {
-			// 	healths := get_component(a, Position{})
-
-			// 	for h in healths {
-			// 		fmt.println(h)
-			// 	}
-			// }
+			a := query(&ecs, Position, Health)
+			for_each(a, proc(h: ^Health) {
+				h.value += 1
+			})
+			for_each(a, proc(c: ^Health) {
+				fmt.println(c.value)
+			})
 		}
 		rl.EndDrawing()
 	}

@@ -25,7 +25,7 @@ ECS_update :: proc(ecs: ^ECS) {
 }
 
 // helper to convert components to runtime.Raw_Any
-c :: proc(data: $T) -> runtime.Raw_Any {
+c :: proc(data: ^$T) -> runtime.Raw_Any {
 	return runtime.Raw_Any{data = data, id = typeid_of(T)}
 }
 
@@ -38,7 +38,7 @@ build_entity :: proc(ecs: ^ECS, components: ..runtime.Raw_Any) -> Entity {
 
 	mask: ComponentMask
 	for c in components {
-		mask_add(&mask, ecs.registry.type_to_index[c.id])
+		mask_add(&mask, ecs.registry, c)
 	}
 
 	// Sort components so archetypes can add them in order.
@@ -58,22 +58,22 @@ build_entity :: proc(ecs: ^ECS, components: ..runtime.Raw_Any) -> Entity {
 	// otherwise, create it.
 	new_arch := Arch_build(mask, ..components)
 	Arch_add_entity(&new_arch, ecs.registry, entity, ..components)
-	append(&ecs.archetypes, new_arch)
 
+	append(&ecs.archetypes, new_arch)
 	return entity
 }
 
 remove_entities :: proc(ecs: ^ECS) {}
 
-query :: proc(ecs: ^ECS, components: ..typeid) -> [dynamic]^Archetype {
+query :: proc(ecs: ^ECS, components: ..typeid) -> [dynamic]Archetype {
 	assert(len(components) != 0)
 
-	archetypes := make([dynamic]^Archetype, len(components), context.temp_allocator)
+	archetypes := make([dynamic]Archetype, 0, context.temp_allocator)
 
 	mask := mask_build(ecs.registry, ..components)
-	for &a in ecs.archetypes {
+	for a in ecs.archetypes {
 		if mask_match(mask, a.component_mask) {
-			append(&archetypes, &a)
+			append(&archetypes, a)
 		}
 	}
 	return len(archetypes) == 0 ? nil : archetypes
