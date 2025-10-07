@@ -3,26 +3,8 @@ package game
 import ecs "../ecs/src"
 import "base:runtime"
 import "core:fmt"
+import "core:math/rand"
 import rl "vendor:raylib"
-
-Test :: struct {
-	name: string,
-	age:  u32,
-}
-
-Position :: struct {
-	x: f64,
-	y: f64,
-}
-
-Velocity :: struct {
-	x: f64,
-	y: f64,
-}
-
-Health :: struct {
-	value: u32,
-}
 
 main :: proc() {
 	using ecs
@@ -31,24 +13,42 @@ main :: proc() {
 	rl.SetTargetFPS(60)
 
 	reg: ComponentRegistry
-	register_components(&reg, Position, Velocity, Health)
+	register_all_components(&reg)
 	ecs := ECS_start(&reg)
 
-	entity_1 := build_entity(&ecs, c(&Position{x = 1, y = 1}), c(&Health{value = 1}))
-	entity_2 := build_entity(&ecs, c(&Position{x = 2, y = 2}), c(&Health{value = 2}))
-	entity_3 := build_entity(&ecs, c(&Position{x = 3, y = 3}), c(&Health{value = 3}))
+	for i in 0 ..< 20_000 {
+		random_1 := rand.float32()
+		random_2 := rand.float32()
+		build_entity(
+			&ecs,
+			c(&Position{random_1, random_2}),
+			c(&Velocity{random_2 * 10, random_1 * 10}),
+			c(&DrawableCircle{radius = 2.0, color = rl.GREEN, border_color = rl.BLACK}),
+		)
+	}
 
 	for !rl.WindowShouldClose() {
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.PINK)
 		{ 	// game code goes here
-			a := query(&ecs, Position, Health)
-			for_each(a, proc(h: ^Health) {
-				h.value += 1
+			r := query(&ecs, Position, Velocity)
+			for_each(r, proc(p: ^Position, v: ^Velocity) {
+				p[0] += v[0]
+				p[1] += v[1]
+
+				if p[0] < 0 || p[0] > cast(f32)rl.GetScreenWidth() {
+					v[0] *= -1
+				}
+				if p[1] < 0 || p[1] > cast(f32)rl.GetScreenHeight() {
+					v[1] *= -1
+				}
 			})
-			for_each(a, proc(c: ^Health) {
-				fmt.println(c.value)
+
+			r = query(&ecs, Position, DrawableCircle)
+			for_each(r, proc(p: ^Position, dc: ^DrawableCircle) {
+				rl.DrawCircleV(cast(rl.Vector2)p^, dc.radius, dc.color)
 			})
+			rl.DrawFPS(10, 40)
 		}
 		rl.EndDrawing()
 	}

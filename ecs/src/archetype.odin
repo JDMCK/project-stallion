@@ -1,10 +1,8 @@
 package ecs
 
 import "base:runtime"
-import "core:compress/shoco"
 import "core:fmt"
 import "core:slice"
-import "core:sort"
 
 Archetype :: struct {
 	component_mask:  ComponentMask,
