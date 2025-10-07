@@ -55,3 +55,10 @@ Arch_add_entity :: proc(
 		Col_add_entry(&arch.components[i], sorted_components[i].data)
 	}
 }
+
+Arch_remove_entity :: proc(arch: ^Archetype, entity_index: int) {
+	for &col in arch.components {
+		Col_remove_entry(&col, entity_index)
+	}
+	unordered_remove(&arch.entities, entity_index)
+}

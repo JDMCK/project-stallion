@@ -59,18 +59,22 @@ Col_add_entry :: proc(col: ^ComponentColumn, data: rawptr) {
 }
 
 Col_remove_entry :: proc(col: ^ComponentColumn, index: int) {
-	raw_components := cast(uintptr)col.data
-	index := raw_components + cast(uintptr)(index * col.component_size)
-	raw_index := cast(rawptr)index
-	last_index := raw_components + cast(uintptr)((col.len - 1) * col.component_size)
-	raw_last_index := cast(rawptr)last_index
+	assert(index >= 0 && index < col.len)
 
-	mem.copy(raw_index, raw_last_index, col.component_size)
-	mem.zero(raw_last_index, col.component_size)
+	base_ptr := cast(uintptr)col.data
+	entry_offset := cast(uintptr)(index * col.component_size)
+	last_offset := cast(uintptr)((col.len - 1) * col.component_size)
+
+	raw_entry := cast(rawptr)(base_ptr + entry_offset)
+	raw_last := cast(rawptr)(base_ptr + last_offset)
+
+	mem.copy(raw_entry, raw_last, col.component_size)
+	mem.zero(raw_last, col.component_size)
+
 	col.len -= 1
 }
 
 Col_get_entry :: proc(col: ^ComponentColumn, index: int) -> rawptr {
-	raw_components := cast(uintptr)col.data
-	return cast(rawptr)(raw_components + cast(uintptr)(index * col.component_size))
+	base_ptr := cast(uintptr)col.data
+	return cast(rawptr)(base_ptr + cast(uintptr)(index * col.component_size))
 }

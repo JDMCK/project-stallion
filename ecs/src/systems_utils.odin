@@ -1,7 +1,7 @@
 package ecs
 
 // 1 components
-get_components_1 :: proc(archetype: Archetype, component: $A) -> []A {
+get_components_1 :: proc(archetype: Archetype, component: $A) -> ([]A, [dynamic]Entity) {
 	type_a := typeid_of(A)
 	idx_a: int = -1
 	for ct, i in archetype.component_types {
@@ -10,11 +10,11 @@ get_components_1 :: proc(archetype: Archetype, component: $A) -> []A {
 
 	ptr_a := cast([^]A)archetype.components[idx_a].data
 
-	return ptr_a[:len(archetype.entities)]
+	return ptr_a[:len(archetype.entities)], archetype.entities
 }
 
 // 2 components
-get_components_2 :: proc(archetype: Archetype, a: $A, b: $B) -> ([]A, []B) {
+get_components_2 :: proc(archetype: Archetype, a: $A, b: $B) -> ([]A, []B, [dynamic]Entity) {
 	type_a := typeid_of(A)
 	type_b := typeid_of(B)
 	idx_a, idx_b: int = -1, -1
@@ -27,11 +27,21 @@ get_components_2 :: proc(archetype: Archetype, a: $A, b: $B) -> ([]A, []B) {
 	ptr_a := cast([^]A)archetype.components[idx_a].data
 	ptr_b := cast([^]B)archetype.components[idx_b].data
 
-	return ptr_a[:len(archetype.entities)], ptr_b[:len(archetype.entities)]
+	return ptr_a[:len(archetype.entities)], ptr_b[:len(archetype.entities)], archetype.entities
 }
 
 // 3 components
-get_components_3 :: proc(archetype: Archetype, a: $A, b: $B, c: $C) -> ([]A, []B, []C) {
+get_components_3 :: proc(
+	archetype: Archetype,
+	a: $A,
+	b: $B,
+	c: $C,
+) -> (
+	[]A,
+	[]B,
+	[]C,
+	[dynamic]Entity,
+) {
 	type_a := typeid_of(A)
 	type_b := typeid_of(B)
 	type_c := typeid_of(C)
@@ -49,7 +59,8 @@ get_components_3 :: proc(archetype: Archetype, a: $A, b: $B, c: $C) -> ([]A, []B
 
 	return ptr_a[:len(archetype.entities)],
 		ptr_b[:len(archetype.entities)],
-		ptr_c[:len(archetype.entities)]
+		ptr_c[:len(archetype.entities)],
+		archetype.entities
 }
 
 // 4 components
@@ -64,6 +75,7 @@ get_components_4 :: proc(
 	[]B,
 	[]C,
 	[]D,
+	[dynamic]Entity,
 ) {
 	type_a := typeid_of(A)
 	type_b := typeid_of(B)
@@ -86,7 +98,8 @@ get_components_4 :: proc(
 	return ptr_a[:len(archetype.entities)],
 		ptr_b[:len(archetype.entities)],
 		ptr_c[:len(archetype.entities)],
-		ptr_d[:len(archetype.entities)]
+		ptr_d[:len(archetype.entities)],
+		archetype.entities
 }
 
 // 5 components
@@ -103,6 +116,7 @@ get_components_5 :: proc(
 	[]C,
 	[]D,
 	[]E,
+	[dynamic]Entity,
 ) {
 	type_a := typeid_of(A)
 	type_b := typeid_of(B)
@@ -129,7 +143,8 @@ get_components_5 :: proc(
 		ptr_b[:len(archetype.entities)],
 		ptr_c[:len(archetype.entities)],
 		ptr_d[:len(archetype.entities)],
-		ptr_e[:len(archetype.entities)]
+		ptr_e[:len(archetype.entities)],
+		archetype.entities
 }
 
 // 6 components
@@ -148,6 +163,7 @@ get_components_6 :: proc(
 	[]D,
 	[]E,
 	[]F,
+	[dynamic]Entity,
 ) {
 	type_a := typeid_of(A)
 	type_b := typeid_of(B)
@@ -178,7 +194,8 @@ get_components_6 :: proc(
 		ptr_c[:len(archetype.entities)],
 		ptr_d[:len(archetype.entities)],
 		ptr_e[:len(archetype.entities)],
-		ptr_f[:len(archetype.entities)]
+		ptr_f[:len(archetype.entities)],
+		archetype.entities
 }
 
 // 7 components
@@ -199,6 +216,7 @@ get_components_7 :: proc(
 	[]E,
 	[]F,
 	[]G,
+	[dynamic]Entity,
 ) {
 	type_a := typeid_of(A)
 	type_b := typeid_of(B)
@@ -233,7 +251,8 @@ get_components_7 :: proc(
 		ptr_d[:len(archetype.entities)],
 		ptr_e[:len(archetype.entities)],
 		ptr_f[:len(archetype.entities)],
-		ptr_g[:len(archetype.entities)]
+		ptr_g[:len(archetype.entities)],
+		archetype.entities
 }
 
 // 8 components
@@ -256,6 +275,7 @@ get_components_8 :: proc(
 	[]F,
 	[]G,
 	[]H,
+	[dynamic]Entity,
 ) {
 	type_a := typeid_of(A)
 	type_b := typeid_of(B)
@@ -299,41 +319,44 @@ get_components_8 :: proc(
 
 
 // 1 component
-for_each_1 :: proc(archetypes: [dynamic]Archetype, f: proc(a: ^$A)) {
+for_each_1 :: proc(archetypes: [dynamic]Archetype, f: proc(a: ^$A, ent: ^Entity)) {
 	for arches in archetypes {
-		ca := get_components_1(arches, A{})
+		ca, ent := get_components_1(arches, A{})
 		for i in 0 ..< len(ca) {
-			f(&ca[i])
+			f(&ca[i], &ent[i])
 		}
 	}
 }
 
 // 2 components
-for_each_2 :: proc(archetypes: [dynamic]Archetype, f: proc(a: ^$A, b: ^$B)) {
+for_each_2 :: proc(archetypes: [dynamic]Archetype, f: proc(a: ^$A, b: ^$B, ent: ^Entity)) {
 	for arches in archetypes {
-		ca, cb := get_components_2(arches, A{}, B{})
+		ca, cb, ent := get_components_2(arches, A{}, B{})
 		for i in 0 ..< len(ca) {
-			f(&ca[i], &cb[i])
+			f(&ca[i], &cb[i], &ent[i])
 		}
 	}
 }
 
 // 3 components
-for_each_3 :: proc(archetypes: [dynamic]Archetype, f: proc(a: ^$A, b: ^$B, c: ^$C)) {
+for_each_3 :: proc(archetypes: [dynamic]Archetype, f: proc(a: ^$A, b: ^$B, c: ^$C, ent: ^Entity)) {
 	for arches in archetypes {
-		ca, cb, cc := get_components_3(arches, A{}, B{}, C{})
+		ca, cb, cc, ent := get_components_3(arches, A{}, B{}, C{})
 		for i in 0 ..< len(ca) {
-			f(&ca[i], &cb[i], &cc[i])
+			f(&ca[i], &cb[i], &cc[i], &ent[i])
 		}
 	}
 }
 
 // 4 components
-for_each_4 :: proc(archetypes: [dynamic]Archetype, f: proc(a: ^$A, b: ^$B, c: ^$C, d: ^$D)) {
+for_each_4 :: proc(
+	archetypes: [dynamic]Archetype,
+	f: proc(a: ^$A, b: ^$B, c: ^$C, d: ^$D, ent: ^Entity),
+) {
 	for arches in archetypes {
-		ca, cb, cc, cd := get_components_4(arches, A{}, B{}, C{}, D{})
+		ca, cb, cc, cd, ent := get_components_4(arches, A{}, B{}, C{}, D{})
 		for i in 0 ..< len(ca) {
-			f(&ca[i], &cb[i], &cc[i], &cd[i])
+			f(&ca[i], &cb[i], &cc[i], &cd[i], &ent[i])
 		}
 	}
 }
@@ -341,12 +364,12 @@ for_each_4 :: proc(archetypes: [dynamic]Archetype, f: proc(a: ^$A, b: ^$B, c: ^$
 // 5 components
 for_each_5 :: proc(
 	archetypes: [dynamic]Archetype,
-	f: proc(a: ^$A, b: ^$B, c: ^$C, d: ^$D, e: ^$E),
+	f: proc(a: ^$A, b: ^$B, c: ^$C, d: ^$D, e: ^$E, ent: ^Entity),
 ) {
 	for arches in archetypes {
-		ca, cb, cc, cd, ce := get_components_5(arches, A{}, B{}, C{}, D{}, E{})
+		ca, cb, cc, cd, ce, ent := get_components_5(arches, A{}, B{}, C{}, D{}, E{})
 		for i in 0 ..< len(ca) {
-			f(&ca[i], &cb[i], &cc[i], &cd[i], &ce[i])
+			f(&ca[i], &cb[i], &cc[i], &cd[i], &ce[i], &ent[i])
 		}
 	}
 }
@@ -354,12 +377,12 @@ for_each_5 :: proc(
 // 6 components
 for_each_6 :: proc(
 	archetypes: [dynamic]Archetype,
-	f: proc(a: ^$A, b: ^$B, c: ^$C, d: ^$D, e: ^$E, g: ^$F),
+	f: proc(a: ^$A, b: ^$B, c: ^$C, d: ^$D, e: ^$E, g: ^$F, ent: ^Entity),
 ) {
 	for arches in archetypes {
-		ca, cb, cc, cd, ce, cf := get_components_6(arches, A{}, B{}, C{}, D{}, E{}, F{})
+		ca, cb, cc, cd, ce, cf, ent := get_components_6(arches, A{}, B{}, C{}, D{}, E{}, F{})
 		for i in 0 ..< len(ca) {
-			f(&ca[i], &cb[i], &cc[i], &cd[i], &ce[i], &cf[i])
+			f(&ca[i], &cb[i], &cc[i], &cd[i], &ce[i], &cf[i], &ent[i])
 		}
 	}
 }
@@ -367,12 +390,21 @@ for_each_6 :: proc(
 // 7 components
 for_each_7 :: proc(
 	archetypes: [dynamic]Archetype,
-	f: proc(a: ^$A, b: ^$B, c: ^$C, d: ^$D, e: ^$E, g: ^$F, h: ^$G),
+	f: proc(a: ^$A, b: ^$B, c: ^$C, d: ^$D, e: ^$E, g: ^$F, h: ^$G, ent: ^Entity),
 ) {
 	for arches in archetypes {
-		ca, cb, cc, cd, ce, cf, cg := get_components_7(arches, A{}, B{}, C{}, D{}, E{}, F{}, G{})
+		ca, cb, cc, cd, ce, cf, cg, ent := get_components_7(
+			arches,
+			A{},
+			B{},
+			C{},
+			D{},
+			E{},
+			F{},
+			G{},
+		)
 		for i in 0 ..< len(ca) {
-			f(&ca[i], &cb[i], &cc[i], &cd[i], &ce[i], &cf[i], &cg[i])
+			f(&ca[i], &cb[i], &cc[i], &cd[i], &ce[i], &cf[i], &cg[i], &ent[i])
 		}
 	}
 }
@@ -380,10 +412,10 @@ for_each_7 :: proc(
 // 8 components
 for_each_8 :: proc(
 	archetypes: [dynamic]Archetype,
-	f: proc(a: ^$A, b: ^$B, c: ^$C, d: ^$D, e: ^$E, g: ^$F, h: ^$G, i: ^$H),
+	f: proc(a: ^$A, b: ^$B, c: ^$C, d: ^$D, e: ^$E, g: ^$F, h: ^$G, i: ^$H, ent: ^Entity),
 ) {
 	for arches in archetypes {
-		ca, cb, cc, cd, ce, cf, cg, ch := get_components_8(
+		ca, cb, cc, cd, ce, cf, cg, ch, ent := get_components_8(
 			arches,
 			A{},
 			B{},
@@ -395,7 +427,7 @@ for_each_8 :: proc(
 			H{},
 		)
 		for i in 0 ..< len(ca) {
-			f(&ca[i], &cb[i], &cc[i], &cd[i], &ce[i], &cf[i], &cg[i], &ch[i])
+			f(&ca[i], &cb[i], &cc[i], &cd[i], &ce[i], &cf[i], &cg[i], &ch[i], &ent[i])
 		}
 	}
 }

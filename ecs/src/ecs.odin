@@ -1,6 +1,7 @@
 package ecs
 
 import "base:runtime"
+import "core:fmt"
 import "core:slice"
 
 Entity :: struct {
@@ -18,7 +19,7 @@ ECS_start :: proc(reg: ^ComponentRegistry) -> ECS {
 }
 
 ECS_update :: proc(ecs: ^ECS) {
-	// TODO: go through all archetypes and remove dead entities
+	remove_entities(ecs)
 	free_all(context.temp_allocator)
 }
 
@@ -61,7 +62,15 @@ build_entity :: proc(ecs: ^ECS, components: ..runtime.Raw_Any) -> Entity {
 	return entity
 }
 
-remove_entities :: proc(ecs: ^ECS) {}
+remove_entities :: proc(ecs: ^ECS) {
+	for &a in ecs.archetypes {
+		for i := len(a.entities) - 1; i >= 0; i -= 1 {
+			if !a.entities[i].is_alive {
+				Arch_remove_entity(&a, i)
+			}
+		}
+	}
+}
 
 query :: proc(ecs: ^ECS, components: ..typeid) -> [dynamic]Archetype {
 	assert(len(components) != 0)
