@@ -7,12 +7,12 @@ Position :: distinct rl.Vector2
 
 Velocity :: distinct rl.Vector2
 
-DrawableCircle :: struct {
-	radius:       f32,
-	color:        rl.Color,
-	border_color: rl.Color,
+Sprite :: struct {
+	width:   f32,
+	height:  f32,
+	texture: rl.Texture2D,
 }
 
 register_all_components :: proc(reg: ^ecs.ComponentRegistry) {
-	ecs.register_components(reg, Position, Velocity, DrawableCircle)
+	ecs.register_components(reg, Position, Velocity, Sprite)
 }

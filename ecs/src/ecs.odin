@@ -23,12 +23,7 @@ ECS_update :: proc(ecs: ^ECS) {
 	free_all(context.temp_allocator)
 }
 
-// helper to convert components to runtime.Raw_Any
-c :: proc(data: ^$T) -> runtime.Raw_Any {
-	return runtime.Raw_Any{data = data, id = typeid_of(T)}
-}
-
-build_entity :: proc(ecs: ^ECS, components: ..runtime.Raw_Any) -> Entity {
+build_entity_helper :: proc(ecs: ^ECS, components: ..runtime.Raw_Any) -> Entity {
 	entity := Entity {
 		id       = ecs.next_entity_id,
 		is_alive = true,
@@ -60,6 +55,14 @@ build_entity :: proc(ecs: ^ECS, components: ..runtime.Raw_Any) -> Entity {
 
 	append(&ecs.archetypes, new_arch)
 	return entity
+}
+
+build_entity :: proc(ecs: ^ECS, components: ..any) -> Entity {
+	raw_components: [dynamic]runtime.Raw_Any
+	for c in components {
+		append(&raw_components, runtime.Raw_Any{data = c.data, id = c.id})
+	}
+	return build_entity_helper(ecs, ..raw_components[:])
 }
 
 remove_entities :: proc(ecs: ^ECS) {

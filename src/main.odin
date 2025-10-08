@@ -16,16 +16,18 @@ main :: proc() {
 	register_all_components(&reg)
 	ecs := ECS_start(&reg)
 
-	for i in 0 ..< 200 {
+	texture := rl.LoadTexture("src\\cactus.png")
+	for i in 0 ..< 100 {
 		random_1 := rand.float32()
 		random_2 := rand.float32()
 		build_entity(
 			&ecs,
-			c(&Position{random_1, random_2}),
-			c(&Velocity{random_2 * 10, random_1 * 10}),
-			c(&DrawableCircle{radius = 5.0, color = rl.GREEN, border_color = rl.BLACK}),
+			Position{random_1, random_2},
+			Velocity{random_2 * 10, random_1 * 10},
+			Sprite{width = 5.0, height = 5.0, texture = texture},
 		)
 	}
+
 	remove_index := 0
 	context.user_ptr = &remove_index
 	for !rl.WindowShouldClose() {
@@ -44,15 +46,11 @@ main :: proc() {
 				if p[1] < 0 || p[1] > cast(f32)rl.GetScreenHeight() {
 					v[1] *= -1
 				}
-
-				if p[1] > cast(f32)rl.GetScreenHeight() / 2 {
-					e.is_alive = false
-				}
 			})
 
-			r = query(&ecs, Position, DrawableCircle)
-			for_each(r, proc(p: ^Position, dc: ^DrawableCircle, e: ^Entity) {
-				rl.DrawCircleV(cast(rl.Vector2)p^, dc.radius, dc.color)
+			r = query(&ecs, Position, Sprite)
+			for_each(r, proc(p: ^Position, s: ^Sprite, e: ^Entity) {
+				rl.DrawTextureV(s.texture, cast(rl.Vector2)p^, rl.WHITE)
 			})
 			rl.DrawFPS(10, 40)
 		}
