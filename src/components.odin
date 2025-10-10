@@ -8,8 +8,7 @@ Position :: distinct rl.Vector2
 Velocity :: distinct rl.Vector2
 
 Sprite :: struct {
-	width:   f32,
-	height:  f32,
+	scale:   f32,
 	texture: rl.Texture2D,
 }
 

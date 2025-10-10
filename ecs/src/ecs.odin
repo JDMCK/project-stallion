@@ -58,7 +58,7 @@ build_entity_helper :: proc(ecs: ^ECS, components: ..runtime.Raw_Any) -> Entity 
 }
 
 build_entity :: proc(ecs: ^ECS, components: ..any) -> Entity {
-	raw_components: [dynamic]runtime.Raw_Any
+	raw_components := make([dynamic]runtime.Raw_Any, 0, 8, context.temp_allocator)
 	for c in components {
 		append(&raw_components, runtime.Raw_Any{data = c.data, id = c.id})
 	}
